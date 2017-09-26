@@ -1,0 +1,56 @@
+language: python
+sudo: false
+branches:
+  only:
+  - master
+  - "/^\\d\\.\\d+$/"
+  - "/^\\d\\.\\d+\\.\\d+(rc\\d+|\\.dev\\d+)?$/"
+matrix:
+  include:
+  - python: 2.7
+    env: TOXENV=py27
+  - python: 2.7
+    env: TOXENV=jessie
+  - python: 3.3
+    env: TOXENV=py33
+  - python: 3.5
+    env: TOXENV=py35
+  - python: 3.6
+    env: TOXENV=py36
+install:
+- |
+  if [ "$TOXENV" = "pypy" ]; then
+    export PYENV_ROOT="$HOME/.pyenv"
+    if [ -f "$PYENV_ROOT/bin/pyenv" ]; then
+      pushd "$PYENV_ROOT" && git pull && popd
+    else
+      rm -rf "$PYENV_ROOT" && git clone --depth 1 https://github.com/yyuu/pyenv.git "$PYENV_ROOT"
+    fi
+    # get latest portable PyPy from pyenv directly (thanks to natural version sort option -V)
+    export PYPY_VERSION=`"$PYENV_ROOT/bin/pyenv" install --list |grep -o -E 'pypy-portable-[0-9][\.0-9]*$' |sort -V |tail -1`
+    "$PYENV_ROOT/bin/pyenv" install --skip-existing "$PYPY_VERSION"
+    virtualenv --python="$PYENV_ROOT/versions/$PYPY_VERSION/bin/python" "$HOME/virtualenvs/$PYPY_VERSION"
+    source "$HOME/virtualenvs/$PYPY_VERSION/bin/activate"
+  fi
+- pip install -U tox twine wheel codecov
+script: tox
+after_success:
+- codecov
+notifications:
+  irc:
+    use_notice: true
+    skip_join: true
+    channels:
+    - irc.freenode.org#scrapy
+cache:
+  directories:
+  - "$HOME/.cache/pip"
+deploy:
+  provider: pypi
+  user: xiaowangwindow
+  password:
+    secure: ZPq4MHeKDk+36d61EJsF23iSr6HMEhoK3w4gCKB0q1HFdxoByiVVXUfmjdflR1YwDZPVuDixTjuOHVeIbaYgWNKLQQvIKua07e1H44Umu3jByBtI3GDbvkmI31zsn0nw8JVNBuE9BeEn07NaRDpoR0rAV28lH05NSc7T/Yr4eNEE1M2qc1/gHKt8lgQ/kcAmYnyLzT569OunKF33lnjDuuO4ogSGix/HFs1zwHyBjGTaeo+3OjsLzdibajD/tXeLVxKlE0hoGn1XcXIFTs1GgbcIBEnjkt/XWpNSwuNR6M5SRAyOvFJgdNS+WBB28435Lnn/v6R7NoXvvlpUbxRfHYS5Pf7zlB6r2m7EbkNQAOR4sBfJrDFeKmg3idfVKwpkReD69XEkWFk7xIg3yWHxkHf54TCVfOoBHeb39J6Ifqolh9XkEiM0Q9SYFgIgxSbBBAgS5rJgcVgWptx7iGMauCZ9Q3y2+SLUJaRpy5rGe0aWAAjAgJYpSS4Y6Z8d7A0inoudMn+UTiCvKIMwMCLwscV1e13C94lvz57dVhOaJubRRsl9gKt7YTxfi2msdK8EVYfamAGyw8BL0RHJadW1N08bzL8d9KT1C8/sHzO26fN+1lMxYHPO9wKLxJDOjLQq/8SObK/cYl+3Wa/n+g9LkvwpS/RfM0gKVvezmliMCJE=
+  on:
+    tags: true
+    distributions: sdist bdist_wheel
+    repo: xiaowangwindow/scrapy-rotated-proxy

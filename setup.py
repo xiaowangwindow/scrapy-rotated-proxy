@@ -7,27 +7,10 @@ with open(join(dirname(__file__), 'scrapy_rotated_proxy/VERSION'), 'rb') as f:
     version = f.read().decode('ascii').strip()
 
 
-def has_environment_marker_platform_impl_support():
-    """Code extracted from 'pytest/setup.py'
-    https://github.com/pytest-dev/pytest/blob/7538680c/setup.py#L31
-
-    The first known release to support environment marker with range operators
-    it is 18.5, see:
-    https://setuptools.readthedocs.io/en/latest/history.html#id235
-    """
-    return parse_version(setuptools_version) >= parse_version('18.5')
-
-
 extras_require = {}
 
-if has_environment_marker_platform_impl_support():
-    extras_require[':platform_python_implementation == "PyPy"'] = [
-        'PyPyDispatcher>=2.1.0',
-    ]
-
-
 setup(
-    name='Scrapy-Rotated-Proxy',
+    name='scrapy-rotated-proxy',
     version=version,
     url='https://github.com/xiaowangwindow/scrapy-rotated-proxy.git',
     description='A middleware to change proxy rotated for Scrapy',
