@@ -2,7 +2,6 @@
 Scrapy-Rotated-Proxy
 ======
 
-
 .. image:: https://img.shields.io/pypi/v/Scrapy.svg
    :target: https://pypi.python.org/pypi/scrapy-rotated-proxy
    :alt: PyPI Version
