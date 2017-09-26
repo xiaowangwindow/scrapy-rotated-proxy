@@ -34,7 +34,7 @@ OR copy this middleware to your scrapy project.
 Documentation
 =============
 
-In `settings.py`, for example::
+In settings.py, for example::
 
     # -----------------------------------------------------------------------------
     # ROTATED PROXY SETTINGS
