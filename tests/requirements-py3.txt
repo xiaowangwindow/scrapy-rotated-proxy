@@ -1,0 +1,8 @@
+pytest==2.9.2
+pytest-twisted
+pytest-cov==2.2.1
+testfixtures
+# optional for shell wrapper tests
+bpython
+ipython
+brotlipy
