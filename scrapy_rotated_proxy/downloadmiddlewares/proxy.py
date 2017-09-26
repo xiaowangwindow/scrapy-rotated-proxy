@@ -76,7 +76,7 @@ class RotatedProxy(object):
         return creds, proxy_url
 
     def getproxies(self, settings):
-        pattern = re.compile(r'(?P<scheme>[A-Z]+)_PROXY')
+        pattern = re.compile(r'(?P<scheme>[A-Z]+)_PROXIES')
 
         def _filter(tuple_):
             m = pattern.match(tuple_[0])

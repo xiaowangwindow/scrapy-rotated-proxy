@@ -43,7 +43,7 @@ class TestDefaultHeadersMiddleware(TestCase):
 
         http_proxy = 'https://proxy.for.http:3128'
         https_proxy = 'http://proxy.for.https:8080'
-        settings = Settings({'HTTP_PROXY': [http_proxy], 'HTTPS_PROXY': [https_proxy]})
+        settings = Settings({'HTTP_PROXIES': [http_proxy], 'HTTPS_PROXIES': [https_proxy]})
 
         crawler = Crawler(spider, settings)
         mw = RotatedProxy(crawler)
@@ -56,7 +56,7 @@ class TestDefaultHeadersMiddleware(TestCase):
             self.assertEqual(req.meta.get('proxy'), proxy)
 
     def test_proxy_precedence_meta(self):
-        settings = Settings({'HTTP_PROXY': ['https://proxy.com']})
+        settings = Settings({'HTTP_PROXIES': ['https://proxy.com']})
         crawler = Crawler(spider, settings)
         mw = RotatedProxy(crawler)
         req = Request('http://scrapytest.org', meta={'proxy': 'https://new.proxy:3128'})
@@ -64,7 +64,7 @@ class TestDefaultHeadersMiddleware(TestCase):
         self.assertEqual(req.meta, {'proxy': 'https://new.proxy:3128'})
 
     def test_proxy_auth(self):
-        settings = Settings({'HTTP_PROXY': ['https://user:pass@proxy:3128']})
+        settings = Settings({'HTTP_PROXIES': ['https://user:pass@proxy:3128']})
         crawler = Crawler(spider, settings)
         mw = RotatedProxy(crawler)
         req = Request('http://scrapytest.org')
@@ -78,7 +78,7 @@ class TestDefaultHeadersMiddleware(TestCase):
         self.assertEqual(req.headers.get('Proxy-Authorization'), b'Basic dXNlcm5hbWU6cGFzc3dvcmQ=')
 
     def test_proxy_auth_empty_passwd(self):
-        settings = Settings({'HTTP_PROXY': ['https://user:@proxy:3128']})
+        settings = Settings({'HTTP_PROXIES': ['https://user:@proxy:3128']})
         crawler = Crawler(spider, settings)
         mw = RotatedProxy(crawler)
         req = Request('http://scrapytest.org')
@@ -93,7 +93,7 @@ class TestDefaultHeadersMiddleware(TestCase):
 
     def test_proxy_auth_encoding(self):
         # utf-8 encoding
-        settings = Settings({'HTTP_PROXY': [u'https://m\u00E1n:pass@proxy:3128']})
+        settings = Settings({'HTTP_PROXIES': [u'https://m\u00E1n:pass@proxy:3128']})
         crawler = Crawler(spider, settings)
         mw = RotatedProxy(crawler, auth_encoding='utf-8')
         print(mw.auth_encoding)
@@ -122,7 +122,7 @@ class TestDefaultHeadersMiddleware(TestCase):
         self.assertEqual(req.headers.get('Proxy-Authorization'), b'Basic /HNlcjpwYXNz')
 
     def test_proxy_already_seted(self):
-        settings = Settings({'HTTP_PROXY': ['https://proxy.for.http:3128']})
+        settings = Settings({'HTTP_PROXIES': ['https://proxy.for.http:3128']})
         crawler = Crawler(spider, settings)
         mw = RotatedProxy(crawler)
         req = Request('http://noproxy.com', meta={'proxy': None})
@@ -131,7 +131,7 @@ class TestDefaultHeadersMiddleware(TestCase):
 
 
     def test_proxy_rotation(self):
-        settings = Settings({'HTTP_PROXY': ['https://proxy1.for.http:3128', 'https://proxy2.for.http:3128']})
+        settings = Settings({'HTTP_PROXIES': ['https://proxy1.for.http:3128', 'https://proxy2.for.http:3128']})
         crawler = Crawler(spider, settings)
         mw = RotatedProxy(crawler)
         req1 = Request('http://scrapytest.org')
@@ -145,7 +145,7 @@ class TestDefaultHeadersMiddleware(TestCase):
         self.assertEqual(req3.meta, {'proxy': 'https://proxy1.for.http:3128'})
 
     def test_multi_scheme(self):
-        settings = Settings({'HTTP_PROXY': ['https://proxy1.for.http:3128'], 'HTTPS_PROXY': ['https://proxy2.for.http:3128']})
+        settings = Settings({'HTTP_PROXIES': ['https://proxy1.for.http:3128'], 'HTTPS_PROXIES': ['https://proxy2.for.http:3128']})
         crawler = Crawler(spider, settings)
         mw = RotatedProxy(crawler)
         req_http = Request('http://scrapytest.org')

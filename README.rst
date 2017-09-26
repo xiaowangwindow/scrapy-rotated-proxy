@@ -2,11 +2,11 @@
 Scrapy-Rotated-Proxy
 ======
 
-.. image:: https://img.shields.io/pypi/v/Scrapy.svg
+.. image:: https://img.shields.io/pypi/v/scrapy-rotated-proxy.svg
    :target: https://pypi.python.org/pypi/scrapy-rotated-proxy
    :alt: PyPI Version
 
-.. image:: https://img.shields.io/travis/scrapy/scrapy/master.svg
+.. image:: https://img.shields.io/travis/xiaowangwindow/scrapy-rotated-proxy/master.svg
    :target: http://travis-ci.org/xiaowangwindow/scrapy-rotated-proxy
    :alt: Build Status
 
@@ -42,13 +42,13 @@ In settings.py, for example::
 
     ROTATED_PROXY_ENABLED = True
 
-    HTTP_PROXY = [
+    HTTP_PROXIES = [
         'http://proxy0:8888',
         'http://user:pass@proxy1:8888',
         'https://user:pass@proxy1:8888',
     ]
 
-    HTTPS_PROXY = [
+    HTTPS_PROXIES = [
         'http://proxy0:8888',
         'http://user:pass@proxy1:8888',
         'https://user:pass@proxy1:8888',
