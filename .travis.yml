@@ -11,16 +11,12 @@ matrix:
     env: TOXENV=py27
   - python: 2.7
     env: TOXENV=jessie
-#  - python: 2.7
-#    env: TOXENV=pypy
   - python: 3.3
     env: TOXENV=py33
   - python: 3.5
     env: TOXENV=py35
   - python: 3.6
     env: TOXENV=py36
-#  - python: 3.6
-#    env: TOXENV=docs
 install:
 - |
   if [ "$TOXENV" = "pypy" ]; then
@@ -51,7 +47,10 @@ cache:
   - "$HOME/.cache/pip"
 deploy:
   provider: pypi
-  distributions: sdist bdist_wheel
   user: xiaowangwindow
   password:
-    secure: dIKUpy7raKG6KZUyHCRTJKyMRjwrYgDURj2bhU5ptsDKQ3PvuBj8UoK9rBMr0WnrGbAytvg60LlcuUNT4+FgGhbL+QwX3X2oB0/S/Gna2I5hW0Hp4NYd/55ks2icOYChBAAruALVQo7oDmXjEwGBnbVWRp/sWs+voPzRvS2HuDahmrgXkERac4sW/QBFW7pWbzojcY0Fs2CbkN5JijGoO2lNn0I2AuFWDSWpcPQkbIwh6/b3/ahajkPGj0iOJ9qxej5EUNBX4RO0xdFbqM+EqDhCHpbY+ivirg9yKBtBpjCB3RfW61zqn7cgEc3Wo94pQ35G90MHC3M9Jw0UxgUlzIhnQzIm+CWBrgpUZqGxtZ7YWSVq3Y5rtCUPPQ9eM0VPnPGO9M1p3QDTWsw/fC2UsO/j+HPjaJkIeEM6y0ISBf+twBo+Ydy1g1mJkmFcb85dRCdmBqSoSLOYHfFddOs6Wl+Zjc29G3HRF+gBdJEQBwpWVr+YnTFVkITLo0mVX+x15uo24tKeasMUIfgHgtQo0Dew/PB14Wk4KEWlD2QOeIXRGenH7GCPbxPlE6Jkqm3jN+8k19NERcp2HsAAgIZjDxOuFcLVW57oP3rCOXir2gnsUrh4s/93l+FYXawD8mt5QWMmKQ8Lo+BMHzK8mYfPhS9KAbRSmf/O+CabO30xWrg=
+    secure: ZPq4MHeKDk+36d61EJsF23iSr6HMEhoK3w4gCKB0q1HFdxoByiVVXUfmjdflR1YwDZPVuDixTjuOHVeIbaYgWNKLQQvIKua07e1H44Umu3jByBtI3GDbvkmI31zsn0nw8JVNBuE9BeEn07NaRDpoR0rAV28lH05NSc7T/Yr4eNEE1M2qc1/gHKt8lgQ/kcAmYnyLzT569OunKF33lnjDuuO4ogSGix/HFs1zwHyBjGTaeo+3OjsLzdibajD/tXeLVxKlE0hoGn1XcXIFTs1GgbcIBEnjkt/XWpNSwuNR6M5SRAyOvFJgdNS+WBB28435Lnn/v6R7NoXvvlpUbxRfHYS5Pf7zlB6r2m7EbkNQAOR4sBfJrDFeKmg3idfVKwpkReD69XEkWFk7xIg3yWHxkHf54TCVfOoBHeb39J6Ifqolh9XkEiM0Q9SYFgIgxSbBBAgS5rJgcVgWptx7iGMauCZ9Q3y2+SLUJaRpy5rGe0aWAAjAgJYpSS4Y6Z8d7A0inoudMn+UTiCvKIMwMCLwscV1e13C94lvz57dVhOaJubRRsl9gKt7YTxfi2msdK8EVYfamAGyw8BL0RHJadW1N08bzL8d9KT1C8/sHzO26fN+1lMxYHPO9wKLxJDOjLQq/8SObK/cYl+3Wa/n+g9LkvwpS/RfM0gKVvezmliMCJE=
+  on:
+    tags: true
+    distributions: sdist bdist_wheel
+    repo: xiaowangwindow/scrapy-rotated-proxy
