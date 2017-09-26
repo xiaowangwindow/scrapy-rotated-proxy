@@ -27,7 +27,7 @@ if has_environment_marker_platform_impl_support():
 
 
 setup(
-    name='Scrapy-Rotated-Proxy',
+    name='scrapy-rotated-proxy',
     version=version,
     url='https://github.com/xiaowangwindow/scrapy-rotated-proxy.git',
     description='A middleware to change proxy rotated for Scrapy',

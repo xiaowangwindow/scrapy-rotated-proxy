@@ -27,21 +27,23 @@ OR copy this middleware to your scrapy project.
 Documentation
 =============
 
-In `settings.py`, for example:
-```
+In `settings.py`, for example::
 
-ROTATED_PROXY_ENABLED = True
+    # -----------------------------------------------------------------------------
+    # ROTATED PROXY SETTINGS
+    # -----------------------------------------------------------------------------
 
-HTTP_PROXY = [
-    'http://proxy0:8888',
-    'http://user:pass@proxy1:8888',
-    'https://user:pass@proxy1:8888',
-]
+    ROTATED_PROXY_ENABLED = True
 
-HTTPS_PROXY = [
-    'http://proxy0:8888',
-    'http://user:pass@proxy1:8888',
-    'https://user:pass@proxy1:8888',
-]
+    HTTP_PROXY = [
+        'http://proxy0:8888',
+        'http://user:pass@proxy1:8888',
+        'https://user:pass@proxy1:8888',
+    ]
 
-```
+    HTTPS_PROXY = [
+        'http://proxy0:8888',
+        'http://user:pass@proxy1:8888',
+        'https://user:pass@proxy1:8888',
+    ]
+
