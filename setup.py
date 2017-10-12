@@ -12,7 +12,7 @@ extras_require = {}
 setup(
     name='scrapy-rotated-proxy',
     version=version,
-    url='https://github.com/xiaowangwindow/scrapy-rotated-proxy.git',
+    url='https://github.com/xiaowangwindow/scrapy-rotated-proxy',
     description='A middleware to change proxy rotated for Scrapy',
     long_description=open('README.rst').read(),
     author='Alex Wang',
