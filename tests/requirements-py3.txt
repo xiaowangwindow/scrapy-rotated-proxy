@@ -6,3 +6,4 @@ testfixtures
 bpython
 ipython
 brotlipy
+txmongo
