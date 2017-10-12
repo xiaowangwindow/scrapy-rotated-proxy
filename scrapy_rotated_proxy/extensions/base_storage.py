@@ -1,7 +1,6 @@
 import logging
 
 from scrapy.settings import Settings
-from typing import AnyStr
 from scrapy import Spider
 from twisted.internet import defer
 from txmongo.connection import ConnectionPool
@@ -10,7 +9,7 @@ from scrapy_rotated_proxy.extensions import default_settings
 
 
 class BaseStorage(object):
-    def __init__(self, settings: Settings, uri_key: AnyStr, db_key: AnyStr, coll_key: AnyStr, index_key: AnyStr):
+    def __init__(self, settings, uri_key, db_key, coll_key, index_key):
         self.db_uri = settings.get(uri_key, getattr(default_settings, uri_key))
         self.db_name = settings.get(db_key, getattr(default_settings, db_key))
         self.coll_name = settings.get(coll_key, getattr(default_settings, coll_key))
@@ -22,7 +21,7 @@ class BaseStorage(object):
         self.logger = logging.getLogger(self.__class__.__name__)
 
     @defer.inlineCallbacks
-    def open_spider(self, spider: Spider):
+    def open_spider(self, spider):
         self._db_client = yield ConnectionPool(self.db_uri)
         self._db = self._db_client[self.db_name]
         self._coll = self._db[self.coll_name]
@@ -31,10 +30,7 @@ class BaseStorage(object):
         self.logger.info('Spider opened: {spider_name}'.format(spider_name=spider.name, storage_name=self.__class__))
 
     @defer.inlineCallbacks
-    def close_spider(self, spider: Spider):
+    def close_spider(self, spider):
         yield self._db_client.disconnect()
         self.logger.info('Spider closed: {spider_name}'.format(spider_name=spider.name, storage_name=self.__class__))
 
-
-if __name__ == '__main__':
-    pass

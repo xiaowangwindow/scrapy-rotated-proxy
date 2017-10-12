@@ -1,8 +1,13 @@
 import re
 import json
+import six
 from itertools import cycle
-from urllib.parse import urlunparse
-from urllib.request import _parse_proxy
+if six.PY2:
+    from urlparse import urlunparse
+    from urllib2 import _parse_proxy
+else:
+    from urllib.parse import urlunparse
+    from urllib.request import _parse_proxy
 
 from scrapy.utils.misc import load_object
 
@@ -11,13 +16,13 @@ from scrapy_rotated_proxy import util
 
 
 class FileProxyStorage():
-    def __init__(self, settings):
+    def __init__(self, settings, auth_encoding='latin-1'):
         if settings.get('PROXY_FILE_PATH') or getattr(default_settings, 'PROXY_FILE_PATH'):
             file_path = settings.get('PROXY_FILE_PATH', getattr(default_settings, 'PROXY_FILE_PATH'))
             self.settings = json.load(open(file_path))
         else:
             self.settings = settings
-        self.auth_encoding = settings.get('HTTPPROXY_AUTH_ENCODING')
+        self.auth_encoding = auth_encoding
 
     def open_spider(self, spider):
         pass

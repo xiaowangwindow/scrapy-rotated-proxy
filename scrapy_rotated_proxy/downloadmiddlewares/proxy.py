@@ -44,7 +44,7 @@ class RotatedProxy(object):
     def __init__(self, crawler, auth_encoding='latin-1'):
         self.auth_encoding = auth_encoding
         self.proxies_storage = load_object(
-            crawler.settings.get('PROXY_STORAGE', getattr(default_settings, 'PROXY_STORAGE')))(crawler.settings)
+            crawler.settings.get('PROXY_STORAGE', getattr(default_settings, 'PROXY_STORAGE')))(crawler.settings, self.auth_encoding)
         self.proxies = None  # Style: {'http':{(auth1, proxy1), (auth2, proxy2}}
         self.black_proxies = {}  # Style: like self.proxies
         self.proxy_gen = {}  # Style: {'http': http_cycle_gen, 'https': https_cycle_gen}

@@ -2,20 +2,21 @@ from itertools import cycle
 
 from twisted.internet import defer
 from six.moves.urllib.parse import urlunparse
+from twisted.internet.defer import returnValue
 
 from scrapy_rotated_proxy import util
 from scrapy_rotated_proxy.extensions.base_storage import BaseStorage
 
 
 class MongoDBProxyStorage(BaseStorage):
-    def __init__(self, settings):
+    def __init__(self, settings, auth_encoding='latin-1'):
         super(MongoDBProxyStorage, self).__init__(
             settings,
             'PROXY_MONGODB_STORAGE_URI',
             'PROXY_MONGODB_STORAGE_DB',
             'PROXY_MONGODB_STORAGE_COLL',
             'PROXY_MONGODB_STORAGE_COLL_INDEX')
-        self.auth_encoding = settings.get('HTTPPROXY_AUTH_ENCODING')
+        self.auth_encoding = auth_encoding
 
     @defer.inlineCallbacks
     def proxies(self):
@@ -37,7 +38,7 @@ class MongoDBProxyStorage(BaseStorage):
                                                              proxy['port'],
                                                              proxy['username'],
                                                              proxy['password']), proxy_list))
-        return res
+        returnValue(res)
 
 
 if __name__ == '__main__':
