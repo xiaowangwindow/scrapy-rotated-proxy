@@ -43,8 +43,9 @@ In settings.py, for example::
     # -----------------------------------------------------------------------------
     ROTATED_PROXY_ENABLED = True
     PROXY_STORAGE = 'scrapy_rotated_proxy.extensions.file_storage.FileProxyStorage'
-    PROXY_FILE_PATH = '' # When set PROXY_FILE_PATH='', scrapy-rotated-proxy
-    will use proxy in Spider Settings default.
+    # When set PROXY_FILE_PATH='', scrapy-rotated-proxy
+    # will use proxy in Spider Settings default.
+    PROXY_FILE_PATH = ''
     HTTP_PROXIES = [
         'http://proxy0:8888',
         'http://user:pass@proxy1:8888',
@@ -63,8 +64,8 @@ In settings.py, for example::
     ROTATED_PROXY_ENABLED = True
     PROXY_STORAGE = 'scrapy_rotated_proxy.extensions.file_storage.FileProxyStorage'
     PROXY_FILE_PATH = 'file_path/proxy.txt'
-    # proxy file content, must use json style, otherwise will cause json load
-    error
+    # proxy file content, must conform to json format, otherwise will cause json
+    # load error
     HTTP_PROXIES = [
         'http://proxy0:8888',
         'http://user:pass@proxy1:8888',
@@ -80,9 +81,9 @@ In settings.py, for example::
     # -----------------------------------------------------------------------------
     # ROTATED PROXY SETTINGS (MongoDB Backend)
     # -----------------------------------------------------------------------------
-    # required field: scheme, username, password, ip, port
+    # mongodb document required field: scheme, username, password, ip, port
     # document example: {'scheme': 'http', 'ip': '10.0.0.1', 'port': 8080,
-    'username':'user', 'password':'password'}
+    # 'username':'user', 'password':'password'}
     ROTATED_PROXY_ENABLED = True
     PROXY_STORAGE = 'scrapy_rotated_proxy.extensions.mongodb_storage.MongoDBProxyStorage'
     PROXY_MONGODB_STORAGE_URI = 'mongodb://10.255.0.0:27017'
