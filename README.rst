@@ -1,6 +1,6 @@
-======
+====================
 Scrapy-Rotated-Proxy
-======
+====================
 
 .. image:: https://img.shields.io/pypi/v/scrapy-rotated-proxy.svg
    :target: https://pypi.python.org/pypi/scrapy-rotated-proxy
@@ -98,7 +98,16 @@ In settings.py, for example::
     })
     ROTATED_PROXY_ENABLED = True
     PROXY_STORAGE = 'scrapy_rotated_proxy.extensions.mongodb_storage.MongoDBProxyStorage'
-    PROXY_MONGODB_STORAGE_URI = 'mongodb://10.255.0.0:27017'
+    PROXY_MONGODB_HOST = HOST_OR_IP
+    PROXY_MONGODB_PORT = 27017
+    PROXY_MONGODB_USERNAME = USERNAME_OR_NONE
+    PROXY_MONGODB_PASSWORD = PASSWORD_OR_NONE
+    PROXY_MONGODB_STORAGE_URI = 'mongodb://{auth}{host}:{port}'.format(
+        auth='{}:{}@'.format(PROXY_MONGODB_USERNAME, PROXY_MONGODB_PASSWORD)
+        if PROXY_MONGODB_USERNAME else '',
+        host=PROXY_MONGODB_HOST,
+        port=PROXY_MONGODB_PORT
+    )
     PROXY_MONGODB_STORAGE_DB = 'vps_management'
     PROXY_MONGODB_STORAGE_COLL = 'service'
 

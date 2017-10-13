@@ -41,16 +41,19 @@ class RotatedProxy(object):
         return o
 
     def __init__(self, crawler, auth_encoding='latin-1'):
+        self.crawler = crawler
         self.auth_encoding = auth_encoding
         self.proxies_storage = load_object(
             crawler.settings.get('PROXY_STORAGE',
-                                 getattr(default_settings, 'PROXY_STORAGE')))(
-            crawler.settings, self.auth_encoding)
-        self.proxies = None  # Style: {'http':{(auth1, proxy1), (auth2, proxy2}}
-        self.black_proxies = {}  # Style: like self.proxies
-        self.proxy_gen = {}  # Style: {'http': http_cycle_gen, 'https': https_cycle_gen}
+                                 getattr(default_settings, 'PROXY_STORAGE'))
+            )(crawler.settings, self.auth_encoding)
+        self.spider = None
+        self.proxies = None
+        self.black_proxies = {}
+        self.proxy_gen = {}
 
     def spider_opened(self, spider):
+        self.spider = spider
         self.proxies_storage.open_spider(spider)
 
     def spider_closed(self, spider):
@@ -62,10 +65,8 @@ class RotatedProxy(object):
             if scheme not in self.black_proxies:
                 self.black_proxies.setdefault(scheme, set())
             if response.request.headers.get('Proxy-Authorization'):
-                creds = \
-                    response.request.headers.get('Proxy-Authorization').split(
-                        b' ')[
-                        -1]
+                creds = response.request.headers.get('Proxy-Authorization')\
+                        .split(b' ')[-1]
             else:
                 creds = None
             self.black_proxies[scheme].add((creds, response.meta.get('proxy')))
@@ -124,7 +125,6 @@ class RotatedProxy(object):
 
     def _set_proxy(self, request, scheme):
         creds, proxy = next(self._cycle_proxy(scheme))
-        print(proxy)
         request.meta['proxy'] = proxy
         if creds:
             request.headers['Proxy-Authorization'] = b'Basic ' + creds
@@ -140,7 +140,8 @@ class RotatedProxy(object):
             if not self.proxies[scheme]:
                 logger.info(
                     'Run out of all {scheme} proxies'.format(scheme=scheme))
-                raise CloseSpider('Run out of All Proxy')
+                self.crawler.engine.close_spider(self.spider,
+                                                 'Run out of All Proxy')
                 break
 
             logger.debug('Left {count} {scheme} proxy to run'.format(
