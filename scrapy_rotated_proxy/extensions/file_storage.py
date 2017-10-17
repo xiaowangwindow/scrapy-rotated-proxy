@@ -7,6 +7,7 @@ from scrapy.utils.misc import load_object
 from scrapy_rotated_proxy.extensions import default_settings
 from scrapy_rotated_proxy import util
 
+import logging
 if six.PY2:
     from urlparse import urlunparse
     from urllib2 import _parse_proxy
@@ -14,6 +15,7 @@ else:
     from urllib.parse import urlunparse
     from urllib.request import _parse_proxy
 
+logger = logging.getLogger(__name__)
 
 class FileProxyStorage():
     def __init__(self, settings, auth_encoding='latin-1'):
@@ -28,9 +30,11 @@ class FileProxyStorage():
         self.auth_encoding = auth_encoding
 
     def open_spider(self, spider):
+        logger.info('Spider opened: {}'.format(spider.name))
         pass
 
     def close_spider(self, spider):
+        logger.info('Spider closed: {}'.format(spider.name))
         pass
 
     def _get_proxy(self, url, orig_type=''):

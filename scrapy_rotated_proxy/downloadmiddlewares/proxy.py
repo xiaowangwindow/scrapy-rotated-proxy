@@ -55,9 +55,11 @@ class RotatedProxy(object):
     def spider_opened(self, spider):
         self.spider = spider
         self.proxies_storage.open_spider(spider)
+        logger.info('Spider opened')
 
     def spider_closed(self, spider):
         self.proxies_storage.close_spider(spider)
+        logger.info('Spider closed')
 
     def proxy_block_received(self, spider, response, exception):
         if response.meta.get('proxy'):
@@ -71,7 +73,7 @@ class RotatedProxy(object):
                 creds = None
             self.black_proxies[scheme].add((creds, response.meta.get('proxy')))
 
-            logger.debug(
+            logger.info(
                 'Block proxy: {proxy}, Total block {count} {scheme} proxy'.format(
                     proxy=response.meta.get('proxy'),
                     count=len(self.black_proxies[scheme]),
@@ -83,7 +85,7 @@ class RotatedProxy(object):
         if not self.proxies:
             self.proxies = yield self.proxies_storage.proxies()
             for scheme, proxies in self.proxies.items():
-                logger.debug(
+                logger.info(
                     'Loaded {count} {scheme} proxy from {origin}'.format(
                         count=len(proxies),
                         scheme=scheme,
