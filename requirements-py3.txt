@@ -1,4 +1,4 @@
-Twisted >= 15.5.0
+Twisted>=15.5.0
 six
-scrapy
+scrapy>=1.4.0
 txmongo

@@ -26,7 +26,7 @@ else:
 logger = logging.getLogger(__name__)
 
 
-class RotatedProxy(object):
+class RotatedProxyMiddleware(object):
     @classmethod
     def from_crawler(cls, crawler):
         if not crawler.settings.getbool('ROTATED_PROXY_ENABLED'):
@@ -52,9 +52,18 @@ class RotatedProxy(object):
         self.black_proxies = {}
         self.proxy_gen = {}
 
-    def spider_opened(self, spider):
+    @defer.inlineCallbacks
+    def spider_opened(self, spider, *args, **kwargs):
         self.spider = spider
         self.proxies_storage.open_spider(spider)
+        self.proxies = yield self.proxies_storage.proxies()
+        for scheme, proxies in self.proxies.items():
+            logger.info(
+                'Loaded {count} {scheme} proxy from {origin}'.format(
+                    count=len(proxies),
+                    scheme=scheme,
+                    origin=self.proxies_storage.__class__.__name__
+                ))
         logger.info('Spider opened')
 
     def spider_closed(self, spider):
@@ -80,18 +89,7 @@ class RotatedProxy(object):
                     scheme=scheme
                 ))
 
-    @defer.inlineCallbacks
     def process_request(self, request, spider):
-        if not self.proxies:
-            self.proxies = yield self.proxies_storage.proxies()
-            for scheme, proxies in self.proxies.items():
-                logger.info(
-                    'Loaded {count} {scheme} proxy from {origin}'.format(
-                        count=len(proxies),
-                        scheme=scheme,
-                        origin=self.proxies_storage.__class__.__name__
-                    ))
-
         # When Retry, dont_filter=True, reset proxy
         if 'proxy' in request.meta and not request.dont_filter:
             if request.meta['proxy'] is None:

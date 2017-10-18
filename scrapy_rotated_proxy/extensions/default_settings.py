@@ -1,7 +1,7 @@
 # DOWNLOADER_MIDDLEWARES = {}
 # DOWNLOADER_MIDDLEWARES.update({
 #     'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': None,
-#     'scrapy_rotated_proxy.downloadmiddlwares.proxy.RotatedProxy': 750,
+#     'scrapy_rotated_proxy.downloadmiddlwares.proxy.RotatedProxyMiddleware': 750,
 # })
 
 # default use Spider Settings Proxy
