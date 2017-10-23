@@ -43,7 +43,7 @@ In settings.py, for example::
     # -----------------------------------------------------------------------------
     DOWNLOADER_MIDDLEWARES.update({
         'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': None,
-        'scrapy_rotated_proxy.downloadmiddlwares.proxy.RotatedProxyMiddleware': 750,
+        'scrapy_rotated_proxy.downloadmiddlewares.proxy.RotatedProxyMiddleware': 750,
     })
     ROTATED_PROXY_ENABLED = True
     PROXY_STORAGE = 'scrapy_rotated_proxy.extensions.file_storage.FileProxyStorage'
@@ -67,7 +67,7 @@ In settings.py, for example::
     # -----------------------------------------------------------------------------
     DOWNLOADER_MIDDLEWARES.update({
         'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': None,
-        'scrapy_rotated_proxy.downloadmiddlwares.proxy.RotatedProxyMiddleware': 750,
+        'scrapy_rotated_proxy.downloadmiddlewares.proxy.RotatedProxyMiddleware': 750,
     })
     ROTATED_PROXY_ENABLED = True
     PROXY_STORAGE = 'scrapy_rotated_proxy.extensions.file_storage.FileProxyStorage'
@@ -94,7 +94,7 @@ In settings.py, for example::
     # 'username':'user', 'password':'password'}
     DOWNLOADER_MIDDLEWARES.update({
         'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': None,
-        'scrapy_rotated_proxy.downloadmiddlwares.proxy.RotatedProxyMiddleware': 750,
+        'scrapy_rotated_proxy.downloadmiddlewares.proxy.RotatedProxyMiddleware': 750,
     })
     ROTATED_PROXY_ENABLED = True
     PROXY_STORAGE = 'scrapy_rotated_proxy.extensions.mongodb_storage.MongoDBProxyStorage'
