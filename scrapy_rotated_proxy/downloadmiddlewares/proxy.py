@@ -6,6 +6,7 @@ import scrapy_rotated_proxy.signals as proxy_signals
 
 from itertools import cycle
 from scrapy.utils.misc import load_object
+from scrapy_rotated_proxy import util
 from twisted.internet import defer
 from six.moves.urllib.parse import urlunparse
 from six.moves.urllib.request import proxy_bypass
@@ -44,9 +45,13 @@ class RotatedProxyMiddleware(object):
         self.crawler = crawler
         self.auth_encoding = auth_encoding
         self.proxies_storage = load_object(
-            crawler.settings.get('PROXY_STORAGE',
-                                 getattr(default_settings, 'PROXY_STORAGE'))
-            )(crawler.settings, self.auth_encoding)
+            crawler.settings.get(
+                'PROXY_STORAGE',
+                getattr(default_settings, 'PROXY_STORAGE')
+            )
+        )(crawler.settings, self.auth_encoding)
+        self.sleep_interval = crawler.settings.get('PROXY_SLEEP_INTERVAL',
+                                                   getattr(default_settings, 'PROXY_SLEEP_INTERVAL'))
         self.spider = None
         self.proxies = None
         self.black_proxies = {}
@@ -57,37 +62,21 @@ class RotatedProxyMiddleware(object):
         self.spider = spider
         self.proxies_storage.open_spider(spider)
         self.proxies = yield self.proxies_storage.proxies()
+        logger.info('{middleware} opened {backend}'.format(
+            middleware=self.__class__.__name__,
+            backend='with backend: {}'.format(self.proxies_storage.__class__.__name__)
+        ))
         for scheme, proxies in self.proxies.items():
             logger.info(
-                'Loaded {count} {scheme} proxy from {origin}'.format(
+                'Loaded {count} {scheme} proxy from {backend}'.format(
                     count=len(proxies),
                     scheme=scheme,
-                    origin=self.proxies_storage.__class__.__name__
+                    backend=self.proxies_storage.__class__.__name__
                 ))
-        logger.info('Spider opened')
 
     def spider_closed(self, spider):
         self.proxies_storage.close_spider(spider)
-        logger.info('Spider closed')
-
-    def proxy_block_received(self, spider, response, exception):
-        if response.meta.get('proxy'):
-            scheme = urlparse_cached(response)[0]
-            if scheme not in self.black_proxies:
-                self.black_proxies.setdefault(scheme, set())
-            if response.request.headers.get('Proxy-Authorization'):
-                creds = response.request.headers.get('Proxy-Authorization')\
-                        .split(b' ')[-1]
-            else:
-                creds = None
-            self.black_proxies[scheme].add((creds, response.meta.get('proxy')))
-
-            logger.info(
-                'Block proxy: {proxy}, Total block {count} {scheme} proxy'.format(
-                    proxy=response.meta.get('proxy'),
-                    count=len(self.black_proxies[scheme]),
-                    scheme=scheme
-                ))
+        logger.info('{middleware} closed'.format(middleware=self.__class__.__name__))
 
     def process_request(self, request, spider):
         # When Retry, dont_filter=True, reset proxy
@@ -111,17 +100,15 @@ class RotatedProxyMiddleware(object):
         if scheme in self.proxies:
             self._set_proxy(request, scheme)
 
-    def _basic_auth_header(self, username, password):
-        if six.PY2:
-            username = username.encode(self.auth_encoding)
-            password = password.encode(self.auth_encoding)
+    def _get_proxy(self, url, orig_type=''):
+        proxy_type, user, password, hostport = _parse_proxy(url)
+        proxy_url = urlunparse(
+            (proxy_type or orig_type, hostport, '', '', '', ''))
 
-        user_pass = to_bytes(
-            '{username}:{password}'.format(username=unquote(username),
-                                           password=unquote(password)),
-            encoding=self.auth_encoding
-        )
-        return base64.b64encode(user_pass).strip()
+        creds = util._basic_auth_header(user, password, self.auth_encoding) \
+            if user else None
+
+        return creds, proxy_url
 
     def _set_proxy(self, request, scheme):
         creds, proxy = next(self._cycle_proxy(scheme))
@@ -144,20 +131,31 @@ class RotatedProxyMiddleware(object):
                                                  'Run out of All Proxy')
                 break
 
-            logger.debug('Left {count} {scheme} proxy to run'.format(
+            logger.info('Left {count} {scheme} proxy to run'.format(
                 count=len(self.proxies[scheme]),
                 scheme=scheme
             ))
+            logger.debug('proxy detail: {}'.format(str(self.proxies)))
             for proxy_item in self.proxies[scheme]:
                 if proxy_item in self.black_proxies.get(scheme, set()):
                     continue
                 yield proxy_item
 
-    def _get_proxy(self, url, orig_type=''):
-        proxy_type, user, password, hostport = _parse_proxy(url)
-        proxy_url = urlunparse(
-            (proxy_type or orig_type, hostport, '', '', '', ''))
+    def proxy_block_received(self, spider, response, exception):
+        if response.meta.get('proxy'):
+            scheme = urlparse_cached(response)[0]
+            if scheme not in self.black_proxies:
+                self.black_proxies.setdefault(scheme, set())
+            if response.request.headers.get('Proxy-Authorization'):
+                creds = response.request.headers.get('Proxy-Authorization')\
+                        .split(b' ')[-1]
+            else:
+                creds = None
+            self.black_proxies[scheme].add((creds, response.meta.get('proxy')))
 
-        creds = self._basic_auth_header(user, password) if user else None
-
-        return creds, proxy_url
+            logger.info(
+                'Block proxy: {proxy}, Total block {count} {scheme} proxy'.format(
+                    proxy=response.meta.get('proxy'),
+                    count=len(self.black_proxies[scheme]),
+                    scheme=scheme
+                ))

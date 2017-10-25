@@ -17,6 +17,7 @@ else:
 
 logger = logging.getLogger(__name__)
 
+
 class FileProxyStorage():
     def __init__(self, settings, auth_encoding='latin-1'):
         if settings.get('PROXY_FILE_PATH') or getattr(default_settings,
@@ -30,12 +31,10 @@ class FileProxyStorage():
         self.auth_encoding = auth_encoding
 
     def open_spider(self, spider):
-        logger.info('Spider opened: {}'.format(spider.name))
-        pass
+        logger.info('{storage} opened'.format(storage=self.__class__.__name__))
 
     def close_spider(self, spider):
-        logger.info('Spider closed: {}'.format(spider.name))
-        pass
+        logger.info('{storage} closed'.format(storage=self.__class__.__name__))
 
     def _get_proxy(self, url, orig_type=''):
         proxy_type, user, password, hostport = _parse_proxy(url)
