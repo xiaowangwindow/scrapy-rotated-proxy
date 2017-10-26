@@ -102,13 +102,14 @@ In settings.py, for example::
     PROXY_MONGODB_PORT = 27017
     PROXY_MONGODB_USERNAME = USERNAME_OR_NONE
     PROXY_MONGODB_PASSWORD = PASSWORD_OR_NONE
-    PROXY_MONGODB_STORAGE_URI = 'mongodb://{auth}{host}:{port}'.format(
-        auth='{}:{}@'.format(PROXY_MONGODB_USERNAME, PROXY_MONGODB_PASSWORD)
-        if PROXY_MONGODB_USERNAME else '',
-        host=PROXY_MONGODB_HOST,
-        port=PROXY_MONGODB_PORT
-    )
-    PROXY_MONGODB_STORAGE_DB = 'vps_management'
-    PROXY_MONGODB_STORAGE_COLL = 'service'
+    PROXY_MONGODB_DB = 'vps_management'
+    PROXY_MONGODB_COLL = 'service'
 
-
+    # -----------------------------------------------------------------------------
+    # OTHER SETTINGS (Optional)
+    # -----------------------------------------------------------------------------
+    # if you want to wait proxy become valid after all proxies are blocked,
+    # you can set wait flag `PROXY_SPIDER_CLOSE_WHEN_NO_PROXY` to False and interval to wait.
+    # otherwise, you can set `PROXY_SPIDER_CLOSE_WHEN_NO_PROXY` to True, it's default setting.
+    PROXY_SLEEP_INTERVAL = 60
+    PROXY_SPIDER_CLOSE_WHEN_NO_PROXY = False

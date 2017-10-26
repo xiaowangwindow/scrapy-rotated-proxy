@@ -47,15 +47,17 @@ class TestDefaultHeadersMiddleware(TestCase):
         self.assertRaises(NotConfigured,
                           partial(RotatedProxyMiddleware.from_crawler, crawler))
 
+    @defer.inlineCallbacks
     def test_no_setting_proxies(self):
         with self._middleware(spider, None) as mw:
             for url in ('http://e.com', 'https://e.com', 'file:///tmp/a'):
                 req = Request(url)
-                res = mw.process_request(req, spider)
+                res = yield mw.process_request(req, spider)
                 assert res is None
                 self.assertEqual(req.url, url)
                 self.assertEqual(req.meta, {})
 
+    @defer.inlineCallbacks
     def test_setting_proxies(self):
 
         http_proxy = 'https://proxy.for.http:3128'
@@ -68,25 +70,27 @@ class TestDefaultHeadersMiddleware(TestCase):
                                ('https://e.com', https_proxy),
                                ('file://tmp/a', None)]:
                 req = Request(url)
-                res = mw.process_request(req, spider)
+                res = yield mw.process_request(req, spider)
                 assert res is None
                 self.assertEqual(req.url, url)
                 self.assertEqual(req.meta.get('proxy'), proxy)
 
+    @defer.inlineCallbacks
     def test_proxy_precedence_meta(self):
         settings = Settings({'HTTP_PROXIES': ['https://proxy.com']})
         with self._middleware(spider, settings) as mw:
             req = Request('http://scrapytest.org',
                           meta={'proxy': 'https://new.proxy:3128'})
-            res = mw.process_request(req, spider)
+            res = yield mw.process_request(req, spider)
             assert res is None
             self.assertEqual(req.meta, {'proxy': 'https://new.proxy:3128'})
 
+    @defer.inlineCallbacks
     def test_proxy_auth(self):
         settings = Settings({'HTTP_PROXIES': ['https://user:pass@proxy:3128']})
         with self._middleware(spider, settings) as mw:
             req = Request('http://scrapytest.org')
-            res = mw.process_request(req, spider)
+            res = yield mw.process_request(req, spider)
             assert res is None
             self.assertEqual(req.meta, {'proxy': 'https://proxy:3128'})
             self.assertEqual(req.headers.get('Proxy-Authorization'),
@@ -94,17 +98,18 @@ class TestDefaultHeadersMiddleware(TestCase):
             # proxy from request.meta
             req = Request('http://scrapytest.org', meta={
                 'proxy': 'https://username:password@proxy:3128'})
-            res = mw.process_request(req, spider)
+            res = yield mw.process_request(req, spider)
             assert res is None
             self.assertEqual(req.meta, {'proxy': 'https://proxy:3128'})
             self.assertEqual(req.headers.get('Proxy-Authorization'),
                              b'Basic dXNlcm5hbWU6cGFzc3dvcmQ=')
 
+    @defer.inlineCallbacks
     def test_proxy_auth_empty_passwd(self):
         settings = Settings({'HTTP_PROXIES': ['https://user:@proxy:3128']})
         with self._middleware(spider, settings) as mw:
             req = Request('http://scrapytest.org')
-            res = mw.process_request(req, spider)
+            res = yield mw.process_request(req, spider)
             assert res is None
             self.assertEqual(req.meta, {'proxy': 'https://proxy:3128'})
             self.assertEqual(req.headers.get('Proxy-Authorization'),
@@ -112,19 +117,20 @@ class TestDefaultHeadersMiddleware(TestCase):
             # proxy from request.meta
             req = Request('http://scrapytest.org',
                           meta={'proxy': 'https://username:@proxy:3128'})
-            res = mw.process_request(req, spider)
+            res = yield mw.process_request(req, spider)
             assert res is None
             self.assertEqual(req.meta, {'proxy': 'https://proxy:3128'})
             self.assertEqual(req.headers.get('Proxy-Authorization'),
                              b'Basic dXNlcm5hbWU6')
 
+    @defer.inlineCallbacks
     def test_proxy_auth_encoding(self):
         # utf-8 encoding
         settings = Settings(
             {'HTTP_PROXIES': [u'https://m\u00E1n:pass@proxy:3128']})
         with self._middleware(spider, settings, auth_encoding='utf-8') as mw:
             req = Request('http://scrapytest.org')
-            res = mw.process_request(req, spider)
+            res = yield mw.process_request(req, spider)
             assert res is None
             self.assertEqual(req.meta, {'proxy': 'https://proxy:3128'})
             self.assertEqual(req.headers.get('Proxy-Authorization'),
@@ -133,7 +139,7 @@ class TestDefaultHeadersMiddleware(TestCase):
             # proxy from request.meta
             req = Request('http://scrapytest.org',
                           meta={'proxy': u'https://\u00FCser:pass@proxy:3128'})
-            res = mw.process_request(req, spider)
+            res = yield mw.process_request(req, spider)
             assert res is None
             self.assertEqual(req.meta, {'proxy': 'https://proxy:3128'})
             self.assertEqual(req.headers.get('Proxy-Authorization'),
@@ -142,7 +148,7 @@ class TestDefaultHeadersMiddleware(TestCase):
         with self._middleware(spider, settings, auth_encoding='latin-1') as mw:
             # default latin-1 encoding
             req = Request('http://scrapytest.org')
-            res = mw.process_request(req, spider)
+            res = yield mw.process_request(req, spider)
             assert res is None
             self.assertEqual(req.meta, {'proxy': 'https://proxy:3128'})
             self.assertEqual(req.headers.get('Proxy-Authorization'),
@@ -151,20 +157,22 @@ class TestDefaultHeadersMiddleware(TestCase):
             # proxy from request.meta, latin-1 encoding
             req = Request('http://scrapytest.org',
                           meta={'proxy': u'https://\u00FCser:pass@proxy:3128'})
-            res = mw.process_request(req, spider)
+            res = yield mw.process_request(req, spider)
             assert res is None
             self.assertEqual(req.meta, {'proxy': 'https://proxy:3128'})
             self.assertEqual(req.headers.get('Proxy-Authorization'),
                              b'Basic /HNlcjpwYXNz')
 
+    @defer.inlineCallbacks
     def test_proxy_already_seted(self):
         settings = Settings({'HTTP_PROXIES': ['https://proxy.for.http:3128']})
         with self._middleware(spider, settings) as mw:
             req = Request('http://noproxy.com', meta={'proxy': None})
-            res = mw.process_request(req, spider)
+            res = yield mw.process_request(req, spider)
             assert res is None
             assert 'proxy' in req.meta and req.meta['proxy'] is None
 
+    @defer.inlineCallbacks
     def test_proxy_rotation(self):
         settings = Settings({'HTTP_PROXIES': ['https://proxy1.for.http:3128',
                                               'https://proxy2.for.http:3128']})
@@ -172,9 +180,9 @@ class TestDefaultHeadersMiddleware(TestCase):
             req1 = Request('http://scrapytest.org')
             req2 = Request('http://scrapytest.org')
             req3 = Request('http://scrapytest.org')
-            res1 = mw.process_request(req1, spider)
-            res2 = mw.process_request(req2, spider)
-            res3 = mw.process_request(req3, spider)
+            res1 = yield mw.process_request(req1, spider)
+            res2 = yield mw.process_request(req2, spider)
+            res3 = yield mw.process_request(req3, spider)
             assert res1 is None
             assert res2 is None
             assert res3 is None
@@ -186,14 +194,15 @@ class TestDefaultHeadersMiddleware(TestCase):
             self.assertNotEqual(req1.meta, req2.meta)
             self.assertEqual(req1.meta, req3.meta)
 
+    @defer.inlineCallbacks
     def test_multi_scheme(self):
         settings = Settings({'HTTP_PROXIES': ['https://proxy1.for.http:3128'],
                              'HTTPS_PROXIES': ['https://proxy2.for.http:3128']})
         with self._middleware(spider, settings) as mw:
             req_http = Request('http://scrapytest.org')
             req_https = Request('https://scrapytest.org')
-            res_http = mw.process_request(req_http, spider)
-            res_https = mw.process_request(req_https, spider)
+            res_http = yield mw.process_request(req_http, spider)
+            res_https = yield mw.process_request(req_https, spider)
             assert res_http is None
             assert res_https is None
             self.assertEqual(req_http.meta,

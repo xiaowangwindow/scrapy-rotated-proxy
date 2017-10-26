@@ -5,9 +5,14 @@ import six
 import scrapy_rotated_proxy.signals as proxy_signals
 
 from itertools import cycle
+
+import time
+
 from scrapy.utils.misc import load_object
 from scrapy_rotated_proxy import util
 from twisted.internet import defer
+from twisted.internet import task
+from twisted.internet import reactor
 from six.moves.urllib.parse import urlunparse
 from six.moves.urllib.request import proxy_bypass
 from six.moves.urllib.parse import unquote
@@ -52,8 +57,15 @@ class RotatedProxyMiddleware(object):
         )(crawler.settings, self.auth_encoding)
         self.sleep_interval = crawler.settings.get('PROXY_SLEEP_INTERVAL',
                                                    getattr(default_settings, 'PROXY_SLEEP_INTERVAL'))
+        self.spider_close_when_no_proxy = crawler.settings.get(
+            'PROXY_SPIDER_CLOSE_WHEN_NO_PROXY',
+            getattr(default_settings, 'PROXY_SPIDER_CLOSE_WHEN_NO_PROXY')
+        )
+        self.check_task = None
         self.spider = None
         self.proxies = None
+        self.valid_proxies = {}
+        self.black_queue = {}
         self.black_proxies = {}
         self.proxy_gen = {}
 
@@ -62,6 +74,9 @@ class RotatedProxyMiddleware(object):
         self.spider = spider
         self.proxies_storage.open_spider(spider)
         self.proxies = yield self.proxies_storage.proxies()
+        self.check_task = task.LoopingCall(self._check_black_proxy)
+        self.check_task.start(60)
+
         logger.info('{middleware} opened {backend}'.format(
             middleware=self.__class__.__name__,
             backend='with backend: {}'.format(self.proxies_storage.__class__.__name__)
@@ -76,8 +91,12 @@ class RotatedProxyMiddleware(object):
 
     def spider_closed(self, spider):
         self.proxies_storage.close_spider(spider)
+        if self.check_task and self.check_task.running:
+            self.check_task.stop()
+
         logger.info('{middleware} closed'.format(middleware=self.__class__.__name__))
 
+    @defer.inlineCallbacks
     def process_request(self, request, spider):
         # When Retry, dont_filter=True, reset proxy
         if 'proxy' in request.meta and not request.dont_filter:
@@ -98,7 +117,7 @@ class RotatedProxyMiddleware(object):
             return
 
         if scheme in self.proxies:
-            self._set_proxy(request, scheme)
+            yield self._set_proxy(request, scheme)
 
     def _get_proxy(self, url, orig_type=''):
         proxy_type, user, password, hostport = _parse_proxy(url)
@@ -110,8 +129,20 @@ class RotatedProxyMiddleware(object):
 
         return creds, proxy_url
 
+    @defer.inlineCallbacks
     def _set_proxy(self, request, scheme):
-        creds, proxy = next(self._cycle_proxy(scheme))
+        while True:
+            creds, proxy = next(self._cycle_proxy(scheme))
+            if not proxy:
+                yield self.sleep(self.sleep_interval,
+                                 'Proxy pool of {scheme} is empty, waiting '
+                                 '{sleep_second} seconds'.format(
+                                     scheme=scheme,
+                                     sleep_second=self.sleep_interval
+                                 ))
+            else:
+                break
+
         request.meta['proxy'] = proxy
         if creds:
             request.headers['Proxy-Authorization'] = b'Basic ' + creds
@@ -123,20 +154,23 @@ class RotatedProxyMiddleware(object):
 
     def _gen_proxy(self, scheme):
         while True:
-            self.proxies[scheme] -= self.black_proxies.get(scheme, set())
-            if not self.proxies[scheme]:
-                logger.info(
-                    'Run out of all {scheme} proxies'.format(scheme=scheme))
-                self.crawler.engine.close_spider(self.spider,
-                                                 'Run out of All Proxy')
-                break
+            self.valid_proxies[scheme] = self.proxies[scheme] - self.black_proxies.get(scheme, set())
+            if not self.valid_proxies[scheme]:
+                if self.spider_close_when_no_proxy:
+                    self.crawler.engine.close_spider(self.spider,
+                                                     'Run out of All Proxy')
+                    break
+                else:
+                    logger.info(
+                        'Run out of all {scheme} proxies'.format(scheme=scheme))
+                    yield None, None
 
             logger.info('Left {count} {scheme} proxy to run'.format(
-                count=len(self.proxies[scheme]),
+                count=len(self.valid_proxies[scheme]),
                 scheme=scheme
             ))
-            logger.debug('proxy detail: {}'.format(str(self.proxies)))
-            for proxy_item in self.proxies[scheme]:
+            logger.info('proxy detail: {}'.format(str(self.valid_proxies)))
+            for proxy_item in self.valid_proxies[scheme]:
                 if proxy_item in self.black_proxies.get(scheme, set()):
                     continue
                 yield proxy_item
@@ -144,14 +178,13 @@ class RotatedProxyMiddleware(object):
     def proxy_block_received(self, spider, response, exception):
         if response.meta.get('proxy'):
             scheme = urlparse_cached(response)[0]
-            if scheme not in self.black_proxies:
-                self.black_proxies.setdefault(scheme, set())
             if response.request.headers.get('Proxy-Authorization'):
-                creds = response.request.headers.get('Proxy-Authorization')\
-                        .split(b' ')[-1]
+                creds = response.request.headers.get('Proxy-Authorization') \
+                    .split(b' ')[-1]
             else:
                 creds = None
-            self.black_proxies[scheme].add((creds, response.meta.get('proxy')))
+            proxy = response.meta.get('proxy')
+            self._add_black_proxy(scheme, creds, proxy)
 
             logger.info(
                 'Block proxy: {proxy}, Total block {count} {scheme} proxy'.format(
@@ -159,3 +192,31 @@ class RotatedProxyMiddleware(object):
                     count=len(self.black_proxies[scheme]),
                     scheme=scheme
                 ))
+
+    def _add_black_proxy(self, scheme, creds, proxy):
+        if scheme not in self.black_proxies:
+            self.black_proxies.setdefault(scheme, set())
+        if scheme not in self.black_queue:
+            self.black_queue.setdefault(scheme, list())
+
+        proxy_item = (creds, proxy)
+        if proxy_item not in self.black_proxies[scheme]:
+            self.black_proxies[scheme].add(proxy_item)
+            self.black_queue[scheme].insert(0, (proxy_item, time.time()))
+
+
+    def _check_black_proxy(self):
+        for scheme in self.black_queue.keys():
+            while len(self.black_queue[scheme]):
+                if int(time.time()) - int(self.black_queue[scheme][-1][1]) < self.sleep_interval:
+                    break
+                proxy_item, timestamp = self.black_queue[scheme].pop()
+                if proxy_item in self.black_proxies[scheme]:
+                    self.black_proxies[scheme].remove(proxy_item)
+
+    def sleep(self, secs, msg):
+        logger.info(msg)
+        d = defer.Deferred()
+        reactor.callLater(secs, d.callback, None)
+        return d
+
