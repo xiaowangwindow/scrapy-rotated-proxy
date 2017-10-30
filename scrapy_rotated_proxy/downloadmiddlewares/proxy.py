@@ -169,7 +169,6 @@ class RotatedProxyMiddleware(object):
                 count=len(self.valid_proxies[scheme]),
                 scheme=scheme
             ))
-            logger.info('proxy detail: {}'.format(str(self.valid_proxies)))
             for proxy_item in self.valid_proxies[scheme]:
                 if proxy_item in self.black_proxies.get(scheme, set()):
                     continue

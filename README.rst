@@ -108,8 +108,9 @@ In settings.py, for example::
     # -----------------------------------------------------------------------------
     # OTHER SETTINGS (Optional)
     # -----------------------------------------------------------------------------
+    # default, spider will close when run out of all proxies
+    # and proxy sleep interval is 24 hours (blocked proxy will disuse in 24 hours),
     # if you want to wait proxy become valid after all proxies are blocked,
     # you can set wait flag `PROXY_SPIDER_CLOSE_WHEN_NO_PROXY` to False and interval to wait.
-    # otherwise, you can set `PROXY_SPIDER_CLOSE_WHEN_NO_PROXY` to True, it's default setting.
-    PROXY_SLEEP_INTERVAL = 60
+    PROXY_SLEEP_INTERVAL = 60*60*24
     PROXY_SPIDER_CLOSE_WHEN_NO_PROXY = False
