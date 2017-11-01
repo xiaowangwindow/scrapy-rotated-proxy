@@ -111,6 +111,14 @@ In settings.py, for example::
     # default, spider will close when run out of all proxies
     # and proxy sleep interval is 24 hours (blocked proxy will disuse in 24 hours),
     # if you want to wait proxy become valid after all proxies are blocked,
-    # you can set wait flag `PROXY_SPIDER_CLOSE_WHEN_NO_PROXY` to False and interval to wait.
+    # you can set flag `PROXY_SPIDER_CLOSE_WHEN_NO_PROXY` to False and interval for wait.
     PROXY_SLEEP_INTERVAL = 60*60*24
     PROXY_SPIDER_CLOSE_WHEN_NO_PROXY = False
+
+    # -----------------------------------------------------------------------------
+    # Signal (Optional)
+    # -----------------------------------------------------------------------------
+    # if you want to block proxy, send signal to
+    # ` scrapy_rotated_proxy.signals.proxy_block ` with arguments (spider, response, exception)
+    # if you want to remove proxy which never use in the spider , send signal to
+    # ` scrapy_rotated_proxy.signals.proxy_remove ` with arguments (spider, request, exception)
