@@ -44,6 +44,8 @@ class RotatedProxyMiddleware(object):
         crawler.signals.connect(o.spider_closed, signal=signals.spider_closed)
         crawler.signals.connect(o.proxy_block_received,
                                 signal=proxy_signals.proxy_block)
+        crawler.signals.connect(o.proxy_remove_received,
+                                signal=proxy_signals.proxy_remove)
         return o
 
     def __init__(self, crawler, auth_encoding='latin-1'):
@@ -67,6 +69,7 @@ class RotatedProxyMiddleware(object):
         self.valid_proxies = {}
         self.black_queue = {}
         self.black_proxies = {}
+        self.invalid_proxies = {}
         self.proxy_gen = {}
 
     @defer.inlineCallbacks
@@ -154,7 +157,9 @@ class RotatedProxyMiddleware(object):
 
     def _gen_proxy(self, scheme):
         while True:
-            self.valid_proxies[scheme] = self.proxies[scheme] - self.black_proxies.get(scheme, set())
+            self.valid_proxies[scheme] = self.proxies[scheme]\
+                                         - self.black_proxies.get(scheme, set())\
+                                         - self.invalid_proxies.get(scheme, set())
             if not self.valid_proxies[scheme]:
                 if self.spider_close_when_no_proxy:
                     self.crawler.engine.close_spider(self.spider,
@@ -170,19 +175,47 @@ class RotatedProxyMiddleware(object):
                 scheme=scheme
             ))
             for proxy_item in self.valid_proxies[scheme]:
-                if proxy_item in self.black_proxies.get(scheme, set()):
+                if proxy_item in self.black_proxies.get(scheme, set()) or \
+                        proxy_item in self.invalid_proxies.get(scheme, set()):
                     continue
                 yield proxy_item
 
-    def proxy_block_received(self, spider, response, exception):
-        if response.meta.get('proxy'):
-            scheme = urlparse_cached(response)[0]
-            if response.request.headers.get('Proxy-Authorization'):
-                creds = response.request.headers.get('Proxy-Authorization') \
+    def _extract_proxy_from_request(self, request):
+        if request.meta.get('proxy'):
+            scheme = urlparse_cached(request)[0]
+            if request.headers.get('Proxy-Authorization'):
+                creds = request.headers.get('Proxy-Authorization')\
                     .split(b' ')[-1]
             else:
                 creds = None
-            proxy = response.meta.get('proxy')
+            proxy = request.meta.get('proxy')
+            return scheme, creds, proxy
+        else:
+            return None, None, None
+
+    def proxy_remove_received(self, spider, request, exception):
+        scheme, creds, proxy = self._extract_proxy_from_request(request)
+        if proxy:
+            self._remove_invalid_proxy(scheme, creds, proxy)
+
+            logger.info(
+                'Remove proxy: {proxy}, Total remove {count} {scheme} proxy'.format(
+                    proxy=request.meta.get('proxy'),
+                    count=len(self.invalid_proxies[scheme]),
+                    scheme=scheme
+                ))
+
+    def _remove_invalid_proxy(self, scheme, creds, proxy):
+        if scheme not in self.invalid_proxies:
+            self.invalid_proxies.setdefault(scheme, set())
+
+        proxy_item = (creds, proxy)
+        if proxy_item not in self.invalid_proxies[scheme]:
+            self.invalid_proxies[scheme].add(proxy_item)
+
+    def proxy_block_received(self, spider, response, exception):
+        scheme, creds, proxy = self._extract_proxy_from_request(response.request)
+        if proxy:
             self._add_black_proxy(scheme, creds, proxy)
 
             logger.info(
