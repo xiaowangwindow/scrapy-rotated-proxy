@@ -38,8 +38,6 @@ OR copy this middleware to your scrapy project.
 Configuration
 #############
 
-In settings.py, for example:
-
 Basic Configuration
 ===================
 
