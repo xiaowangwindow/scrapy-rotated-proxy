@@ -190,6 +190,6 @@ Settings Reference
 +----------------------------------+------------------------------------------------------------------------------------------+------------------+
 | PROXY_SLEEP_INTERVAL             | Time to sleep for blocked proxy become available                                         | 60*60*24         |
 +----------------------------------+------------------------------------------------------------------------------------------+------------------+
-| PROXY_SPIDER_CLOSE_WHEN_NO_PROXY | Where to close spider when run out of all proxies                                        | True             |
+| PROXY_SPIDER_CLOSE_WHEN_NO_PROXY | Whether to close spider when run out of all proxies                                      | True             |
 +----------------------------------+------------------------------------------------------------------------------------------+------------------+
 
