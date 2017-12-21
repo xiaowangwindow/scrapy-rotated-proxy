@@ -129,6 +129,7 @@ enable `scrapy-rotated-proxy` middleware and supply proxy ip list through MongoD
     PROXY_MONGODB_PORT = 27017
     PROXY_MONGODB_USERNAME = USERNAME_OR_NONE
     PROXY_MONGODB_PASSWORD = PASSWORD_OR_NONE
+    PROXY_MONGODB_AUTH_DB = 'admin'
     PROXY_MONGODB_DB = 'vps_management'
     PROXY_MONGODB_COLL = 'service'
 
