@@ -20,12 +20,12 @@ logger = logging.getLogger(__name__)
 
 class FileProxyStorage():
     def __init__(self, settings, auth_encoding='latin-1'):
+        self.file_path = None
         if settings.get('PROXY_FILE_PATH') or getattr(default_settings,
                                                       'PROXY_FILE_PATH'):
-            file_path = settings.get('PROXY_FILE_PATH',
+            self.file_path = settings.get('PROXY_FILE_PATH',
                                      getattr(default_settings,
                                              'PROXY_FILE_PATH'))
-            self.settings = json.load(open(file_path))
         else:
             self.settings = settings
         self.auth_encoding = auth_encoding
@@ -55,6 +55,9 @@ class FileProxyStorage():
                 scheme = m.group('scheme').lower()
                 return scheme, {self._get_proxy(item, scheme) for item in
                                 tuple_[1]}
+
+        if self.file_path:
+            self.settings = json.load(open(self.file_path))
 
         proxies = []
         for item in self.settings.items():
