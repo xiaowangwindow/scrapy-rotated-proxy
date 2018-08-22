@@ -45,6 +45,7 @@ cache:
   - "$HOME/.cache/pip"
 deploy:
   provider: pypi
+  skip_existing: true
   user: xiaowangwindow
   password:
     secure: NaT1VpAxxcp0kMiSLK32MpRrtZNFymmNn+b/3wUGoAFF6HIWydfpk85d2ursjrQ4G6ssSdKs2jEhZKkTERhj0PWONGGlmVk8A+WMBNo0iBwIGnF1422y58EA/Ya4pMl5lIscNgviCFhJejGgoGi53c1PusAI6qZwltVkYCnwgY9qZglSB/FvQLZhnRD6HGyw8AQ4BlsDQGFZ2CyeCPWe5BGsZBWkuJqBNRwYc4oOSFzt7x0iftKtYpc31i4VuY8HD/uJ9MvCc/vrogBNoSb5+lpyg/r2Kjt71BgWB9r/JuW2XEkcUH1hn4jERHVNUTwRDWBeMZR+Ai+YE+zi0xgka34rN7zcrWJktnJQfxWS6wz25PNvEo4TCAn+//ckeazb2eqgilQRtOJFqcdT7pji14Fv1JY6hOX4zWioumHCVeibpmOKbel/fDxtR0xS36w63Rr3KLvFxE/1xVXGYI7ji0CSx8gnrx7pasxJrDemomDqDWG/b0PyPjGfoCI6JwwkSOUkJ6AAV+Wh73dgUYTbCimJxMQfCvg4fNrBGf2mWvWJPmPBPcMXkiS6+Tky4Pw0X3OgNUOn78nJFlu0B9uLaFsjzH5Ah1Y+Aj5yQ6NqSOveIuZYAX3HAJOOYF1xNANgWh+ITWT4Be50/48UvyL2ghRWE4pbJrvxb1Evp1nwLNg=
