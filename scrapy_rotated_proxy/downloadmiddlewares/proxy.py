@@ -2,6 +2,8 @@ import base64
 import logging
 import re
 import six
+from twisted.internet.defer import Deferred
+
 import scrapy_rotated_proxy.signals as proxy_signals
 
 from itertools import cycle
@@ -62,6 +64,10 @@ class RotatedProxyMiddleware(object):
         self.spider_close_when_no_proxy = crawler.settings.get(
             'PROXY_SPIDER_CLOSE_WHEN_NO_PROXY',
             getattr(default_settings, 'PROXY_SPIDER_CLOSE_WHEN_NO_PROXY')
+        )
+        self.enable_reload_proxy = crawler.settings.get(
+            'PROXY_RELOAD_ENABLED',
+            getattr(default_settings, 'PROXY_RELOAD_ENABLED')
         )
         self.check_task = None
         self.spider = None
@@ -150,6 +156,16 @@ class RotatedProxyMiddleware(object):
         if creds:
             request.headers['Proxy-Authorization'] = b'Basic ' + creds
 
+    def reload_proxies(self, proxies):
+        self.proxies = proxies
+        for scheme, proxies in self.proxies.items():
+            logger.info(
+                'Reloaded {count} {scheme} proxy from {backend}'.format(
+                    count=len(proxies),
+                    scheme=scheme,
+                    backend=self.proxies_storage.__class__.__name__
+                ))
+
     def _cycle_proxy(self, scheme):
         if not self.proxy_gen.get(scheme):
             self.proxy_gen[scheme] = self._gen_proxy(scheme)
@@ -179,6 +195,12 @@ class RotatedProxyMiddleware(object):
                         proxy_item in self.invalid_proxies.get(scheme, set()):
                     continue
                 yield proxy_item
+
+            if self.enable_reload_proxy:
+                if isinstance(self.proxies_storage.proxies, Deferred):
+                    self.proxies_storage.proxies.addCallback(self.reload_proxies)
+                else:
+                    self.reload_proxies(self.proxies_storage.proxies())
 
     def _extract_proxy_from_request(self, request):
         if request.meta.get('proxy'):

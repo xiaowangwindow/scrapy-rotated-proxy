@@ -11,8 +11,6 @@ matrix:
     env: TOXENV=py27
   - python: 2.7
     env: TOXENV=jessie
-  - python: 3.3
-    env: TOXENV=py33
   - python: 3.5
     env: TOXENV=py35
   - python: 3.6
@@ -47,9 +45,10 @@ cache:
   - "$HOME/.cache/pip"
 deploy:
   provider: pypi
+  skip_existing: true
   user: xiaowangwindow
   password:
-    secure: "Scq9SiTUWgswNNDw6+J9iPA8J2YlyTwFLEQB4RJYPg3A+IeuiHxqwgJ5aJKXOUx5Ah7GPn0HeYkBVRzix4AfMF/R4VgWQxKoagVeWMCCggDPJWYmFhrZhtHhjhR0h3kneTzbW71DCxxQYmrt811iDqIqW1DMKEuss9lQk4z8VAbr5DfDi5mKzc1xcAv8Ic3YkqJ26H6WDahD2QqP4XECq+MK+xSOSOPKI2KoYEd7bGHWgagDX5sFmQmrcRHb2i9WAvXwbfXTplkE88qI2etxE4zeaqbCBTbX2+s787/lrXEPJvCICSgA53MbAX+yqizht/7QOXjDVA8rwkPkOZiztYgyATLtUADSVWz9b+xg4acKgng24jY+Sv1qJI/WEOVBIqupTDpWhjR6bqYfsAfcX0t4LN5jVDkb5tNk0YXKXu0HXe/6TaLcPjxzmfHLpvz/KRk8MCNgAOdJTbUQx8KqeS+VCdlVVknd+baYmuih3n8/kXW+8kVVgOBOwVTrahFwlUpmcPWebAKWNCBb8/coHxRcxDZSiJ/Gr7ZVlpi2Xxk0KjairhCTH0jiVvecNjhex8Nzq0V4PcE8nMQx1XZazpcSgPKorTzHUNewIRPc9G/kq/yH40Cr8Coyl1+DKjds1J1dBFa18cUlnryYWVdZeGXbFbcGeUiB1qijY+6Xc6o="
+    secure: NaT1VpAxxcp0kMiSLK32MpRrtZNFymmNn+b/3wUGoAFF6HIWydfpk85d2ursjrQ4G6ssSdKs2jEhZKkTERhj0PWONGGlmVk8A+WMBNo0iBwIGnF1422y58EA/Ya4pMl5lIscNgviCFhJejGgoGi53c1PusAI6qZwltVkYCnwgY9qZglSB/FvQLZhnRD6HGyw8AQ4BlsDQGFZ2CyeCPWe5BGsZBWkuJqBNRwYc4oOSFzt7x0iftKtYpc31i4VuY8HD/uJ9MvCc/vrogBNoSb5+lpyg/r2Kjt71BgWB9r/JuW2XEkcUH1hn4jERHVNUTwRDWBeMZR+Ai+YE+zi0xgka34rN7zcrWJktnJQfxWS6wz25PNvEo4TCAn+//ckeazb2eqgilQRtOJFqcdT7pji14Fv1JY6hOX4zWioumHCVeibpmOKbel/fDxtR0xS36w63Rr3KLvFxE/1xVXGYI7ji0CSx8gnrx7pasxJrDemomDqDWG/b0PyPjGfoCI6JwwkSOUkJ6AAV+Wh73dgUYTbCimJxMQfCvg4fNrBGf2mWvWJPmPBPcMXkiS6+Tky4Pw0X3OgNUOn78nJFlu0B9uLaFsjzH5Ah1Y+Aj5yQ6NqSOveIuZYAX3HAJOOYF1xNANgWh+ITWT4Be50/48UvyL2ghRWE4pbJrvxb1Evp1nwLNg=
   on:
     tags: true
     distributions: sdist bdist_wheel
