@@ -108,7 +108,7 @@ class RotatedProxyMiddleware(object):
     @defer.inlineCallbacks
     def process_request(self, request, spider):
         # When Retry, dont_filter=True, reset proxy
-        if 'proxy' in request.meta and not request.dont_filter:
+        if 'proxy' in request.meta:
             if request.meta['proxy'] is None:
                 return
             creds, proxy_url = self._get_proxy(request.meta['proxy'], '')
