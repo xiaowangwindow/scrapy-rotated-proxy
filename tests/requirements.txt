@@ -1,6 +1,6 @@
 # Tests requirements
 mock
-pytest==2.9.2
+pytest==9.0.3
 pytest-twisted
 pytest-cov==2.2.1
 txmongo
